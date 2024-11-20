@@ -1,0 +1,287 @@
+:root {
+  --input-color: #99a3ba;
+  --input-border: #cdd9ed;
+  --input-background: #fff;
+  --input-placeholder: #cbd1dc;
+
+  --input-border-focus: #275efe;
+
+  --group-color: var(--input-color);
+  --group-border: var(--input-border);
+  --group-background: #eef4ff;
+
+  --group-color-focus: #fff;
+  --group-border-focus: var(--input-border-focus);
+  --group-background-focus: #678efe;
+}
+
+.form-field {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  line-height: 25px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  border-radius: 6px;
+  -webkit-appearance: none;
+  color: #333; /* Chỉnh màu chữ thành màu sáng hơn */
+  border: 1px solid var(--input-border);
+  background: var(--input-background);
+  transition: border 0.3s ease;
+  &::placeholder {
+      color: var(--input-placeholder);
+  }
+  &:focus {
+      outline: none;
+      border-color: var(--input-border-focus);
+  }
+}
+
+.form-group {
+  position: relative;
+  display: flex;
+  width: 100%;
+  & > span,
+  .form-field {
+    white-space: nowrap;
+    display: block;
+    &:not(:first-child):not(:last-child) {
+      border-radius: 0;
+    }
+    &:first-child {
+      border-radius: 6px 0 0 6px;
+    }
+    &:last-child {
+      border-radius: 0 6px 6px 0;
+    }
+    &:not(:first-child) {
+      margin-left: -1px;
+    }
+  }
+  .form-field {
+    position: relative;
+    z-index: 1;
+    flex: 1 1 auto;
+    width: 1%;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+  & > span {
+    text-align: center;
+    padding: 8px 12px;
+    font-size: 14px;
+    line-height: 25px;
+    color: var(--group-color);
+    background: var(--group-background);
+    border: 1px solid var(--group-border);
+    transition: background 0.3s ease, border 0.3s ease, color 0.3s ease;
+  }
+  &:focus-within {
+    & > span {
+      color: var(--group-color-focus);
+      background: var(--group-background-focus);
+      border-color: var(--group-border-focus);
+    }
+  }
+}
+
+html {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: inherit;
+  font-family: "Poppins", sans-serif;
+  &:before,
+  &:after {
+    box-sizing: inherit;
+  }
+}
+
+body {
+  min-height: 100vh;
+  width: 100vw;
+  font-family: "Mukta Malar", Arial;
+  display: flex;
+  /* justify-content: center;
+  align-items: center; */
+  flex-direction: column;
+  background: #030303;
+  .form-group {
+    max-width: 800px;
+    &:not(:last-child) {
+      margin-bottom: 32px;
+    }
+  }
+}
+html {
+  font-size: 16px;
+  line-height: 1.5;
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+h1 {
+  color: white;
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@900&display=swap");
+
+h1 {
+  font-family: "Poppins", sans-serif;
+  font-size: 100px;
+  background-image: linear-gradient(
+    43deg,
+    #4158d0 0%,
+    #c850c0 46%,
+    #ffcc70 100%
+  );
+  -webkit-background-clip: text;
+  color: transparent;
+  text-align: center;
+}
+h2 {
+  font-family: "Poppins", sans-serif;
+  font-size: 30px;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(
+    90deg,
+    rgba(2, 0, 36, 1) 0%,
+    rgba(232, 121, 121, 1) 0%,
+    rgba(0, 212, 255, 1) 100%
+  );
+}
+h3 {
+  font-family: "Poppins", sans-serif;
+  font-size: 25px;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(
+    90deg,
+    rgba(2, 0, 36, 1) 0%,
+    rgba(232, 121, 121, 1) 0%,
+    rgba(0, 212, 255, 1) 100%
+  );
+}
+
+#statics {
+  background-color: #ede8d9;
+  border-radius: 20px;
+  padding: 10px;
+  margin-left: 100px;
+  margin-right: 100px;
+  position: inherit;
+  margin-top: 50px;
+}
+.button {
+  margin-left: 5px;
+}
+
+.btn-grad {
+  background-image: linear-gradient(
+    to right,
+    #ff6e7f 0%,
+    #bfe9ff 51%,
+    #ff6e7f 100%
+  );
+  height: 40px;
+  width: 150px;
+  margin-left: 20px;
+  /* padding: 15px 45px; */
+  text-align: center;
+  /* text-transform: uppercase; */
+  transition: 0.5s;
+  background-size: 200% auto;
+  color: white;
+  font-size: 16px;
+  box-shadow: 0 0 20px #eee;
+  border-radius: 10px;
+  display: block;
+  cursor: pointer;
+}
+
+.btn-grad:hover {
+  background-position: right center; /* change the direction of the change here */
+  color: #fff;
+  text-decoration: none;
+}
+.container {
+  display: flex;
+}
+#no_spam_image {
+  width: 100px;
+}
+#spam_image {
+  width: 80px;
+}
+.container-statics {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+}
+.nospam-container {
+  padding-right: 250px;
+  justify-items: center;
+  display: grid;
+}
+.spam-container {
+  justify-items: center;
+  display: grid;
+}
+.number_no_spam,
+.number_spam {
+  font-size: 18px;
+  font-weight: bold;
+}
+thead {
+  color: white;
+  background-color: #2c3845;
+}
+#reviews-table_filter {
+  margin-bottom: 5px;
+}
+#reviews-table_filter > label > input {
+  background-color: white;
+}
+.dataTables_wrapper .dataTables_length select {
+  background-color: white !important;
+}
+.answer {
+  font-size: 17px;
+  font-weight: bold;
+}
+
+.red-text {
+  color: red;
+  display: inline;
+}
+
+.green-text {
+  color: green;
+  display: inline;
+}
+
+.answer {
+  display: inline-block;
+  overflow: hidden; /* Ensures the text does not overflow the box */
+  white-space: nowrap; /* Keeps the text in a single line */
+  border-right: 0.15em solid orange; /* A small cursor-like effect */
+  animation: blink-caret 0.75s step-end infinite;
+}
+
+/* The cursor blink effect */
+@keyframes blink-caret {
+  from,
+  to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: orange;
+  }
+}

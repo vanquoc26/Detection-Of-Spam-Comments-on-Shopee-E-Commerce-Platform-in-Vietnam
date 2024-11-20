@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+    <title>Shopee Reviews Analytics</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.css">
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Thêm thư viện Chart.js -->
+    <style>
+        /* Cập nhật CSS cho phần biểu đồ */
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            /* Bạn có thể điều chỉnh chiều cao theo ý muốn */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            /* Khoảng cách giữa phần số liệu và biểu đồ */
+        }
+
+        #spamChart {
+            width: 50%;
+            /* Kích thước chiều rộng biểu đồ, bạn có thể điều chỉnh */
+            height: 50%;
+            /* Kích thước chiều cao biểu đồ, bạn có thể điều chỉnh */
+        }
+    </style>
+    <script>
+        $(document).ready(function () {
+            var table = $('#reviews-table').DataTable({
+                "pageLength": 5
+            });
+
+            var socket = io();
+            var spamChart; // Biến để lưu trữ biểu đồ
+
+            socket.on('new_review', function (data) {
+                var review = data.review;
+                var row = '<tr>' +
+                    '<td style="text-align: center;">' + review.username + '</td>' +
+                    '<td style="text-align: center;">' + review.rating + '</td>' +
+                    '<td>' + review.comment + '</td>' +
+                    '<td style="text-align: center;">' + review.product_name + '</td>' +
+                    '<td>' + review.comment_clean + '</td>' +
+                    '<td style="text-align: center;">' + review.label + '</td>' +
+                    '</tr>';
+                table.row.add($(row)).draw();
+
+                // Update spam and non-spam counts
+                $('.number_spam').text(data.spam_count);
+                $('.number_no_spam').text(data.non_spam_count);
+
+                // Cập nhật biểu đồ khi có dữ liệu mới
+                updateChart(data.spam_count, data.non_spam_count);
+            });
+
+            $('form').on('submit', function (event) {
+                event.preventDefault(); // Ngăn chặn form submit thông thường
+                var formData = $(this).serialize();
+
+                $.ajax({
+                    url: '/',
+                    method: 'POST',
+                    data: formData,
+                    success: function (response) {
+                        if (response.status === "success") {
+                            table.clear().draw(); // Xóa bảng khi bắt đầu crawl mới
+                        }
+                    }
+                });
+            });
+
+            $('#stop-btn').on('click', function () {
+                $.ajax({
+                    url: '/stop',
+                    method: 'POST',
+                    success: function (response) {
+                        console.log(response); // Log phản hồi từ server
+                    }
+                });
+            });
+
+            $('#predict-form').on('submit', function (event) {
+                event.preventDefault(); // Ngăn chặn form submit thông thường
+                var formData = $(this).serialize();
+
+                $.ajax({
+                    url: '/predict',
+                    method: 'POST',
+                    data: formData,
+                    success: function (response) {
+                        var answerElement = $('.answer');
+
+                        // Xác định văn bản và class để áp dụng
+                        var textBefore = 'Đây là câu comment ';
+                        var textClass = response.predict === 'Spam' ? 'red-text' : 'green-text';
+                        var textColored = '<span class="' + textClass + '">' + response.predict + '</span>';
+
+                        // Xóa văn bản hiện tại nếu có
+                        answerElement.html('');
+
+                        // Hàm mô phỏng hiệu ứng typing
+                        function typeWriter(textBefore, textColored, element, delay) {
+                            var index = 0;
+                            var coloredStarted = false;
+
+                            function addChar() {
+                                if (index < textBefore.length) {
+                                    element.append(textBefore.charAt(index));
+                                } else if (!coloredStarted) {
+                                    element.append(textColored);
+                                    coloredStarted = true;
+                                }
+
+                                index++;
+                                if (index <= textBefore.length || !coloredStarted) {
+                                    setTimeout(addChar, delay);
+                                }
+                            }
+
+                            addChar();
+                        }
+
+                        // Bắt đầu hiệu ứng typing
+                        typeWriter(textBefore, textColored, answerElement, 50); // 50ms delay giữa mỗi ký tự
+                    }
+                });
+
+            });
+
+            // Hàm cập nhật biểu đồ spam
+            function updateChart(spamCount, nonSpamCount) {
+                var ctx = document.getElementById('spamChart').getContext('2d');
+
+                // Xóa biểu đồ cũ nếu tồn tại
+                if (spamChart) {
+                    spamChart.destroy();
+                }
+
+                // Tính tổng số lượt đánh giá
+                var totalCount = spamCount + nonSpamCount;
+
+                // Tính phần trăm của spam và non-spam
+                var spamPercentage = (spamCount / totalCount) * 100;
+                var nonSpamPercentage = (nonSpamCount / totalCount) * 100;
+
+                spamChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Spam', 'Non-Spam'],
+                        datasets: [{
+                            label: 'Spam vs Non-Spam',
+                            data: [spamPercentage, nonSpamPercentage],
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.5)',
+                                'rgba(54, 162, 235, 0.5)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        legend: {
+                            position: 'bottom',
+                        },
+                        tooltips: {
+                            callbacks: {
+                                label: function (tooltipItem, data) {
+                                    var dataset = data.datasets[tooltipItem.datasetIndex];
+                                    var total = dataset.data.reduce(function (previousValue, currentValue, currentIndex, array) {
+                                        return previousValue + currentValue;
+                                    });
+                                    var currentValue = dataset.data[tooltipItem.index];
+                                    var percentage = Math.round(((currentValue / total) * 100));
+                                    return percentage + "%";
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <h1 class="Header">Shopee Reviews Analytics</h1>
+    <section id="statics">
+        <h2>Crawling And Static Reviews</h2>
+        <div class="container">
+            <form method="POST" action="/" class="form-group">
+                <div class="form-group">
+                    <input class="form-field" type="url" name="url" placeholder="Type URL..." required>
+                    <span>URL</span>
+                </div>
+                <button type="submit" class="btn-grad">Start</button>
+                <button type="button" class="btn-grad" id="stop-btn" style="display: true;">Stop</button>
+            </form>
+        </div>
+        <div class="container-statics">
+            <div class="nospam-container">
+                <img id="no_spam_image" src="../static/images/no-spam.png" alt="">
+                <p class="number_no_spam">{{ non_spam_count }}</p>
+            </div>
+            <div class="spam-container">
+                <img id="spam_image" src="../static/images/spam.png" alt="">
+                <p class="number_spam">{{ spam_count }}</p>
+            </div>
+        </div>
+        <div class="chart-container"> <!-- Thêm container cho biểu đồ -->
+            <canvas id="spamChart"></canvas>
+        </div>
+        <table border="1" id="reviews-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Rating</th>
+                    <th>Comment</th>
+                    <th>Product Name</th>
+                    <th>Clean Comment</th>
+                    <th>Label</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Dữ liệu sẽ được thêm vào đây bằng JavaScript -->
+            </tbody>
+        </table>
+    </section>
+
+    <section id="statics">
+        <h2>Predict Reviews</h2>
+        <form id="predict-form" class="form-group">
+            <div class="form-group">
+                <input class="form-field" type="text" name="text" placeholder="Type something..." required>
+                <span>Text</span>
+            </div>
+            <button type="submit" class="btn-grad">Predict</button>
+        </form>
+        <div>
+            <h3>Result</h3>
+            <p class="answer"><b>Dự đoán:</b>{{ predict }}</p>
+        </div>
+    </section>
+</body>
+
+</html>
